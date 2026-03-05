@@ -8,7 +8,7 @@ This repository contains Python scripts used for the machine learning analysis a
 - `full_analysis_pipeline.py`  
   Nested cross-validation of multiple regression models (GPR, Random Forest, Gradient Boosting, SVR, Elastic Net), out-of-fold prediction analysis, learning curve calculation, and model retraining on the full dataset. It also performs 1D/2D ALE, bootstrap-based interaction strength estimation, and SHAP analysis for model interpretability.
 
-- `monte_carlo.py`  
+- `mc_error_propagation.py`  
   Monte Carlo simulation for propagating experimental uncertainties in electrochemical measurements (e.g., pitting potential) to estimated model inputs and outputs, providing empirical confidence intervals for the predicted quantities.
 
 ### Input data
