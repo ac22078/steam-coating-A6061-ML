@@ -1,5 +1,6 @@
 # steam-coating-A6061-ML
 Code and data for interpretable ML analysis of steam-coated A6061 pitting resistance
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.18876390.svg)](https://doi.org/10.5281/zenodo.18876390)
 
 ## Analysis scripts
 
@@ -31,3 +32,9 @@ Install the main dependencies with:
 
 ```bash
 pip install numpy pandas matplotlib scikit-learn joblib shap PyALE
+
+### Citation
+
+If you use this code or data, please cite:
+
+Kei Masuhara, et al. (2026). steam-coating-A6061-ML: Code and data for interpretable ML analysis of steam-coated A6061 pitting resistance (Version 1.0.1). Zenodo. https://doi.org/10.5281/zenodo.18876390
