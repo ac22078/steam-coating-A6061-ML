@@ -32,7 +32,7 @@ Install the main dependencies with:
 
 ```bash
 pip install numpy pandas matplotlib scikit-learn joblib shap PyALE
-
+```
 ### Citation
 
 If you use this code or data, please cite:
