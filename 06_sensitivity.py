@@ -25,7 +25,6 @@ OUTPUT_DIR = Path(".")
 OUTPUT_CSV = "Sensitivity_Analysis_NestedCV.csv"
 OUTPUT_PDF = "Sensitivity_Analysis_CV.pdf"
 
-# Hyperparameter optimization grid synchronized with primary model architecture
 RF_MODEL = RandomForestRegressor(random_state=42, n_estimators=500)
 PARAM_GRID = {
     "max_depth": [3, 4, 5],
@@ -33,10 +32,8 @@ PARAM_GRID = {
     "max_features": ["sqrt", None]
 }
 
-# 5-fold, 10-repeats structure (Total 50 outer folds for strict validation)
 RKF_OUTER = RepeatedKFold(n_splits=5, n_repeats=10, random_state=42)
 
-# Definition of systematic physical feature-exclusion alternative subsets
 FEATURE_SETS = {
     "Full Model": ['FT', 'SQ', 'CS', 'FS'],
     "Without FT": ['SQ', 'CS', 'FS'],
@@ -67,12 +64,10 @@ def execute_sensitivity_nested_cv(X_full, y):
         X_sub = X_full[feature_list].values
         outer_r2_scores = []
         
-        # Outer Loop: Generalization capability evaluation
         for train_idx, test_idx in RKF_OUTER.split(X_sub, y):
             X_train, X_test = X_sub[train_idx], X_sub[test_idx]
             y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
             
-            # Inner Loop: Rigorous hyperparameter re-optimization per fold
             inner_cv = GridSearchCV(
                 estimator=RF_MODEL,
                 param_grid=PARAM_GRID,
@@ -82,7 +77,6 @@ def execute_sensitivity_nested_cv(X_full, y):
             )
             inner_cv.fit(X_train, y_train)
             
-            # Prediction validation using optimized parameters
             best_estimator = inner_cv.best_estimator_
             y_pred = best_estimator.predict(X_test)
             outer_r2_scores.append(r2_score(y_test, y_pred))
@@ -101,26 +95,26 @@ def execute_sensitivity_nested_cv(X_full, y):
     return pd.DataFrame(records)
 
 # =============================================================================
-# 4. PLOTTING FUNCTION (PDF GENERATION)
+# 4. PLOTTING FUNCTION (PDF GENERATION - HORIZONTAL VERSION)
 # =============================================================================
 def plot_sensitivity_results(df, output_path):
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8, 5))
     
-    # Plotting mean R2 with error bars (Standard Deviation)
-    plt.bar(df["Model"], df["CV_R2_Mean"], yerr=df["CV_R2_Std"], 
-            capsize=5, color='skyblue', edgecolor='black', alpha=0.8)
+    # Horizontal bars
+    plt.barh(df["Model"], df["CV_R2_Mean"], xerr=df["CV_R2_Std"], 
+             capsize=5, color='skyblue', edgecolor='black', alpha=0.8)
     
-    plt.axhline(y=df.loc[df["Model"] == "Full Model", "CV_R2_Mean"].values[0], 
-                color='red', linestyle='--', label='Full Model Baseline')
+    # Baseline line (vertical)
+    baseline = df.loc[df["Model"] == "Full Model", "CV_R2_Mean"].values[0]
+    plt.axvline(x=baseline, color='red', linestyle='--', label='Full Model Baseline')
     
-    plt.ylabel("Cross-Validation Mean R²")
+    plt.xlabel("Cross-Validation Mean R²")
+    plt.ylabel("Model Configuration")
     plt.title("Sensitivity Analysis: Descriptor Exclusion Impact")
-    plt.ylim(0, 0.8)
-    plt.xticks(rotation=45)
-    plt.legend()
+    plt.xlim(0.4, 0.75) 
+    plt.legend(loc='lower right')
     plt.tight_layout()
     
-    # Save as PDF
     plt.savefig(output_path)
     print(f"Plot successfully saved to: {output_path}")
     plt.close()
@@ -133,20 +127,15 @@ if __name__ == "__main__":
     print("REPEATED NESTED CROSS-VALIDATION SENSITIVITY ANALYSIS ROUTINE")
     print("=" * 75)
     
-    # Load data
     X_full, y = load_and_verify_dataset(DATA_PATH)
-    
-    # Run analysis
     sensitivity_results = execute_sensitivity_nested_cv(X_full, y)
     
-    # Save statistics to CSV
     csv_path = OUTPUT_DIR / OUTPUT_CSV
     sensitivity_results.to_csv(csv_path, index=False)
     
-    # Generate visualization
     pdf_path = OUTPUT_DIR / OUTPUT_PDF
     plot_sensitivity_results(sensitivity_results, pdf_path)
     
     print("=" * 75)
-    print("Analysis and Visualization successfully completed.")
+    print(f"Analysis successfully completed. Metrics exported to '{csv_path}', Plot to '{pdf_path}'")
     print("=" * 75)
