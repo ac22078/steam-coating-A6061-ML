@@ -6,10 +6,12 @@ Date: July 2026
 This script explicitly quantifies physical descriptor redundancy and validates 
 model interpretability profiles under remaining multicollinearity (high VIF) 
 using a mathematically rigorous repeated nested cross-validation framework.
+It generates both the statistical results (CSV) and a visualization (PDF).
 """
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RepeatedKFold, GridSearchCV
@@ -20,7 +22,8 @@ from sklearn.metrics import r2_score
 # =============================================================================
 DATA_PATH = "A5.csv"
 OUTPUT_DIR = Path(".")
-OUTPUT_FILE = "Sensitivity_Analysis_NestedCV.csv"
+OUTPUT_CSV = "Sensitivity_Analysis_NestedCV.csv"
+OUTPUT_PDF = "Sensitivity_Analysis_CV.pdf"
 
 # Hyperparameter optimization grid synchronized with primary model architecture
 RF_MODEL = RandomForestRegressor(random_state=42, n_estimators=500)
@@ -98,20 +101,52 @@ def execute_sensitivity_nested_cv(X_full, y):
     return pd.DataFrame(records)
 
 # =============================================================================
-# 4. EXECUTION AND DATA EXPORT
+# 4. PLOTTING FUNCTION (PDF GENERATION)
+# =============================================================================
+def plot_sensitivity_results(df, output_path):
+    plt.figure(figsize=(8, 6))
+    
+    # Plotting mean R2 with error bars (Standard Deviation)
+    plt.bar(df["Model"], df["CV_R2_Mean"], yerr=df["CV_R2_Std"], 
+            capsize=5, color='skyblue', edgecolor='black', alpha=0.8)
+    
+    plt.axhline(y=df.loc[df["Model"] == "Full Model", "CV_R2_Mean"].values[0], 
+                color='red', linestyle='--', label='Full Model Baseline')
+    
+    plt.ylabel("Cross-Validation Mean R²")
+    plt.title("Sensitivity Analysis: Descriptor Exclusion Impact")
+    plt.ylim(0, 0.8)
+    plt.xticks(rotation=45)
+    plt.legend()
+    plt.tight_layout()
+    
+    # Save as PDF
+    plt.savefig(output_path)
+    print(f"Plot successfully saved to: {output_path}")
+    plt.close()
+
+# =============================================================================
+# 5. EXECUTION AND DATA EXPORT
 # =============================================================================
 if __name__ == "__main__":
     print("=" * 75)
     print("REPEATED NESTED CROSS-VALIDATION SENSITIVITY ANALYSIS ROUTINE")
     print("=" * 75)
     
+    # Load data
     X_full, y = load_and_verify_dataset(DATA_PATH)
+    
+    # Run analysis
     sensitivity_results = execute_sensitivity_nested_cv(X_full, y)
     
-    # Save the finalized statistical benchmark to disk
-    output_path = OUTPUT_DIR / OUTPUT_FILE
-    sensitivity_results.to_csv(output_path, index=False)
+    # Save statistics to CSV
+    csv_path = OUTPUT_DIR / OUTPUT_CSV
+    sensitivity_results.to_csv(csv_path, index=False)
+    
+    # Generate visualization
+    pdf_path = OUTPUT_DIR / OUTPUT_PDF
+    plot_sensitivity_results(sensitivity_results, pdf_path)
     
     print("=" * 75)
-    print(f"Analysis successfully completed. Statistics saved to: '{output_path}'")
+    print("Analysis and Visualization successfully completed.")
     print("=" * 75)
