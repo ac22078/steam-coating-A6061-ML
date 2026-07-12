@@ -21,6 +21,9 @@ Run the scripts in order. Each script saves outputs to `./results/`.
 
 - `05_monte_carlo.py`  
   Monte Carlo uncertainty propagation for predicted pitting potential. Applies relative measurement errors to each input feature across 1000 trials and reports empirical prediction uncertainty.
+  
+- `06_sensitivity.py`
+Feature-exclusion sensitivity analysis. Assesses model robustness and descriptor redundancy under multicollinearity using a repeated nested cross-validation framework (5-fold, 10 repeats). By systematically omitting individual descriptors and comparing predictive performance ($R^2$) against the full-model baseline, it mathematically validates that SHAP and ALE interpretations are not artifacts of statistical collinearity.
 
 ## Usage
 
@@ -30,6 +33,7 @@ python 02_learning_curve.py
 python 03_shap.py
 python 04_ale.py
 python 05_monte_carlo.py
+python 06_sensitivity.py
 ```
 
 All outputs are saved to `./results/`.
